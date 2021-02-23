@@ -90,7 +90,7 @@ func (b *S3FileBackend) initClient() error {
 func (c *S3FileBackend) UploadFile(objectName, path string) error {
 	file, err := os.Open(path)
 	if err != nil {
-		return errors.Wrapf(err, "failed to open file %q", path)
+		return errors.Wrapf(err, "failed to open file: %q", path)
 	}
 	defer file.Close()
 
@@ -116,7 +116,7 @@ func (c *S3FileBackend) DownloadFile(objectKey, path string) error {
 
 	file, err := os.Create(path)
 	if err != nil {
-		return errors.Wrapf(err, "failed to create file: %s", path)
+		return errors.Wrapf(err, "failed to create file: %q", path)
 	}
 	defer file.Close()
 

@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// This test runs with real S3 bucket
+// This test runs with real S3 bucket.
 // To run it, make sure to login into your AWS account
 // and provide appropriate environment variables.
 // You can run the test with `go test -tags=e2e ./...`
@@ -23,7 +23,7 @@ func TestBackupRestore_Postgres(t *testing.T) {
 
 	// When using different file storage then S3 - make it insecure (for testing with Bifrost)
 	endpoint := os.Getenv("BRT_STORAGE_ENDPOINT")
-	if endpoint != "s3.amazon.com" {
+	if endpoint != "" && endpoint != "s3.amazon.com" {
 		err := os.Setenv("BRT_STORAGE_TLS", "false")
 		require.NoError(t, err)
 	}
