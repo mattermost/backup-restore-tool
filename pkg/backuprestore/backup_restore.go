@@ -25,7 +25,7 @@ type RestoreOptions struct {
 func Backup(dbOperator DBOperator, fileStorage Storage, options BackupOptions, log logrus.FieldLogger) error {
 	tempFile := path.Join(os.TempDir(), options.ObjectKey)
 	if !options.PreserveBackupFile {
-		defer cleanupFile(tempFile)
+		defer cleanupFile(tempFile, log)
 	}
 
 	log.Infof("Starting database export to file: %s", tempFile)
@@ -48,7 +48,7 @@ func Backup(dbOperator DBOperator, fileStorage Storage, options BackupOptions, l
 func Restore(dbOperator DBOperator, fileStorage Storage, options RestoreOptions, log logrus.FieldLogger) error {
 	tempFile := path.Join(os.TempDir(), options.ObjectKey)
 	if !options.PreserveRestoreFile {
-		defer cleanupFile(tempFile)
+		defer cleanupFile(tempFile, log)
 	}
 
 	log.Infof("Staring backup file download to: %s", tempFile)
@@ -56,7 +56,7 @@ func Restore(dbOperator DBOperator, fileStorage Storage, options RestoreOptions,
 	if err != nil {
 		return err
 	}
-	logrus.Infof("Backup file download finished.")
+	log.Infof("Backup file download finished.")
 
 	log.Infof("Staring database restoration")
 	err = dbOperator.Restore(tempFile)
@@ -68,9 +68,9 @@ func Restore(dbOperator DBOperator, fileStorage Storage, options RestoreOptions,
 	return nil
 }
 
-func cleanupFile(path string) {
+func cleanupFile(path string, log logrus.FieldLogger) {
 	err := os.Remove(path)
 	if err != nil {
-		logrus.Errorf("Failed to remove file %q: %s", path, err.Error())
+		log.Errorf("Failed to remove file %q: %s", path, err.Error())
 	}
 }
