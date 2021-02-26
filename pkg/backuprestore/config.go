@@ -56,7 +56,7 @@ func (b Config) Validate() error {
 		return nil
 	}
 
-	return fmt.Errorf("invalid config:\n %s", strings.Join(errMsgs, "\n-"))
+	return fmt.Errorf("invalid config: %s", strings.Join(errMsgs, "; "))
 }
 
 func isEmpty(s string) bool {

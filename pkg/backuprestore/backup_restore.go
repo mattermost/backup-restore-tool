@@ -51,14 +51,14 @@ func Restore(dbOperator DBOperator, fileStorage Storage, options RestoreOptions,
 		defer cleanupFile(tempFile, log)
 	}
 
-	log.Infof("Staring backup file download to: %s", tempFile)
+	log.Infof("Starting backup file download to: %s", tempFile)
 	err := fileStorage.DownloadFile(options.ObjectKey, tempFile)
 	if err != nil {
 		return err
 	}
 	log.Infof("Backup file download finished.")
 
-	log.Infof("Staring database restoration")
+	log.Infof("Starting database restoration")
 	err = dbOperator.Restore(tempFile)
 	if err != nil {
 		return err
