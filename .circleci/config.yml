@@ -3,6 +3,9 @@ executors:
   default:
     docker:
       - image: circleci/golang:1.15
+  ubuntu-go:
+    machine:
+      image: ubuntu-2004:202101-01
 
 jobs:
   lint:
@@ -14,9 +17,11 @@ jobs:
 
   test:
     executor:
-      name: default
+      name: ubuntu-go
     steps:
       - checkout
+      - run: sudo apt-get update && sudo apt-get install golang
+      - run: sudo apt-get update && sudo apt-get install postgresql-client
       - run: make unittest
 
   push-docker-pr:

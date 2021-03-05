@@ -10,6 +10,6 @@ export TAG="${CIRCLE_SHA1:0:7}"
 
 echo $DOCKER_PASSWORD | docker login --username $DOCKER_USERNAME --password-stdin
 
-docker tag mattermost/fleet-controller:test mattermost/fleet-controller:$TAG
+docker tag mattermost/backup-restore-tool:test mattermost/backup-restore-tool:$TAG
 
-docker push mattermost/fleet-controller:$TAG
+docker push mattermost/backup-restore-tool:$TAG
