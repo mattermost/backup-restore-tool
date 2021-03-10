@@ -11,10 +11,11 @@ func ConfigFromOptions() backuprestore.Config {
 			ConnectionString: viper.GetString("database"),
 		},
 		StorageConfig: backuprestore.StorageConfig{
-			Endpoint:  viper.GetString("storage-endpoint"),
-			Bucket:    viper.GetString("storage-bucket"),
-			Region:    viper.GetString("storage-region"),
-			ObjectKey: viper.GetString("storage-object-key"),
+			Endpoint:   viper.GetString("storage-endpoint"),
+			Bucket:     viper.GetString("storage-bucket"),
+			Region:     viper.GetString("storage-region"),
+			PathPrefix: viper.GetString("storage-path-prefix"),
+			ObjectKey:  viper.GetString("storage-object-key"),
 
 			AccessKey: viper.GetString("storage-access-key"),
 			SecretKey: viper.GetString("storage-secret-key"),
