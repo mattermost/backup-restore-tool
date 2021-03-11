@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 
 	"github.com/mattermost/backup-restore-tool/pkg/backuprestore"
 	s3 "github.com/minio/minio-go/v7"
@@ -14,26 +15,28 @@ import (
 )
 
 type S3FileBackend struct {
-	endpoint  string
-	accessKey string
-	secretKey string
-	secure    bool
-	region    string
-	bucket    string
-	isBifrost bool
+	endpoint   string
+	accessKey  string
+	secretKey  string
+	secure     bool
+	region     string
+	bucket     string
+	pathPrefix string
+	isBifrost  bool
 
 	client *s3.Client
 }
 
 func NewS3FileBackend(config backuprestore.StorageConfig) (*S3FileBackend, error) {
 	backend := &S3FileBackend{
-		endpoint:  config.Endpoint,
-		accessKey: config.AccessKey,
-		secretKey: config.SecretKey,
-		secure:    config.EnableTLS,
-		region:    config.Region,
-		bucket:    config.Bucket,
-		isBifrost: config.Bifrost,
+		endpoint:   config.Endpoint,
+		accessKey:  config.AccessKey,
+		secretKey:  config.SecretKey,
+		secure:     config.EnableTLS,
+		region:     config.Region,
+		bucket:     config.Bucket,
+		pathPrefix: config.PathPrefix,
+		isBifrost:  config.Bifrost,
 	}
 
 	err := backend.initClient()
@@ -87,18 +90,20 @@ func (b *S3FileBackend) initClient() error {
 }
 
 // UploadFile uploads a single file to file store
-func (c *S3FileBackend) UploadFile(objectName, path string) error {
-	file, err := os.Open(path)
+func (b *S3FileBackend) UploadFile(objectKey, sourcePath string) error {
+	file, err := os.Open(sourcePath)
 	if err != nil {
-		return errors.Wrapf(err, "failed to open file: %q", path)
+		return errors.Wrapf(err, "failed to open file: %q", sourcePath)
 	}
 	defer file.Close()
+
+	path := filepath.Join(b.pathPrefix, objectKey)
 
 	var contentType string
 	contentType = "binary/octet-stream"
 
 	options := s3PutOptions(true, contentType)
-	_, err = c.client.PutObject(context.Background(), c.bucket, objectName, file, -1, options)
+	_, err = b.client.PutObject(context.Background(), b.bucket, path, file, -1, options)
 	if err != nil {
 		return errors.Wrap(err, "failed to upload file to file storage")
 	}
@@ -107,16 +112,18 @@ func (c *S3FileBackend) UploadFile(objectName, path string) error {
 }
 
 // DownloadFile downloads file from file store
-func (c *S3FileBackend) DownloadFile(objectKey, path string) error {
-	minioObject, err := c.client.GetObject(context.Background(), c.bucket, objectKey, s3.GetObjectOptions{})
+func (b *S3FileBackend) DownloadFile(objectKey, destinationPath string) error {
+	path := filepath.Join(b.pathPrefix, objectKey)
+
+	minioObject, err := b.client.GetObject(context.Background(), b.bucket, path, s3.GetObjectOptions{})
 	if err != nil {
 		return errors.Wrap(err, "failed to init storage client")
 	}
 	defer minioObject.Close()
 
-	file, err := os.Create(path)
+	file, err := os.Create(destinationPath)
 	if err != nil {
-		return errors.Wrapf(err, "failed to create file: %q", path)
+		return errors.Wrapf(err, "failed to create file: %q", destinationPath)
 	}
 	defer file.Close()
 

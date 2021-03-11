@@ -26,6 +26,7 @@ func init() {
 	rootCmd.PersistentFlags().String("storage-endpoint", "s3.amazonaws.com", "File storage endpoint.")
 	rootCmd.PersistentFlags().String("storage-bucket", "", "File storage bucket in which the backup should be stored.")
 	rootCmd.PersistentFlags().String("storage-region", "", "Storage region.")
+	rootCmd.PersistentFlags().String("storage-path-prefix", "", "Storage path prefix where under which the object will be stored.")
 	rootCmd.PersistentFlags().String("storage-object-key", "", "Object key under which backup file will be stored.")
 
 	rootCmd.PersistentFlags().String("storage-access-key", "", "File storage access key id.")

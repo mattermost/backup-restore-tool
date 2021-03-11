@@ -15,10 +15,11 @@ type DatabaseConfig struct {
 }
 
 type StorageConfig struct {
-	Endpoint  string
-	Bucket    string
-	Region    string
-	ObjectKey string
+	Endpoint   string
+	Bucket     string
+	Region     string
+	ObjectKey  string
+	PathPrefix string
 
 	AccessKey string
 	SecretKey string
