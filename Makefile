@@ -1,6 +1,6 @@
 ## Docker Build Versions
 DOCKER_BUILDER_SERVER_IMAGE = golang:1.19
-DOCKER_BASE_IMAGE = alpine:3.13
+DOCKER_BASE_IMAGE = alpine:3.17
 
 ################################################################################
 
@@ -8,6 +8,10 @@ export GOBIN ?= $(PWD)/bin
 GO ?= $(shell command -v go 2> /dev/null)
 GOFLAGS ?= $(GOFLAGS:)
 IMAGE ?= mattermost/backup-restore-tool:test
+
+TRIVY_SEVERITY := CRITICAL
+TRIVY_EXIT_CODE := 1
+TRIVY_VULN_TYPE := os,library
 
 export GO111MODULE=on
 
@@ -62,6 +66,10 @@ e2e: ## Run e2e test.
 .PHONY: e2e-s3-cleanup
 e2e-s3-cleanup: ## Removes backup file created in Amazon S3 by e2e test.
 	aws s3 rm s3://${BRT_STORAGE_BUCKET}/backup-restore-e2e-test-key
+
+trivy: build-image
+	@echo running trivy
+	@trivy image --format table --exit-code $(TRIVY_EXIT_CODE) --ignore-unfixed --vuln-type $(TRIVY_VULN_TYPE) --severity $(TRIVY_SEVERITY) $(IMAGE)
 
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' ./Makefile | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
