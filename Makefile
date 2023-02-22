@@ -1,5 +1,5 @@
 ## Docker Build Versions
-DOCKER_BUILDER_SERVER_IMAGE = golang:1.15
+DOCKER_BUILDER_SERVER_IMAGE = golang:1.19
 DOCKER_BASE_IMAGE = alpine:3.13
 
 ################################################################################
