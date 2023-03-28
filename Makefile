@@ -67,7 +67,8 @@ e2e: ## Run e2e test.
 e2e-s3-cleanup: ## Removes backup file created in Amazon S3 by e2e test.
 	aws s3 rm s3://${BRT_STORAGE_BUCKET}/backup-restore-e2e-test-key
 
-trivy: build-image
+.PHONY: build-image
+scan: build-image
 	@echo running trivy
 	@trivy image --format table --exit-code $(TRIVY_EXIT_CODE) --ignore-unfixed --vuln-type $(TRIVY_VULN_TYPE) --severity $(TRIVY_SEVERITY) $(IMAGE)
 

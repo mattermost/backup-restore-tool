@@ -9,6 +9,9 @@ on:
 permissions:
   contents: read
 
+env:
+  IMAGE_NAME: mattermost/backup-restore-tool
+
 jobs:
   lint:
     runs-on: ubuntu-22.04
@@ -16,13 +19,14 @@ jobs:
     - name: ci/checkout-repo
       uses: actions/checkout@24cb9080177205b6e8c946b17badbe402adc938f # v3.4.0
       with:
-        fetch-depth: 0
+        fetch-depth: 1
 
     - name: Setup Go
       uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 # v3.5.0
       with:
         go-version-file: go.mod
         cache: true
+
     - name: ci/check-style
       run: make check-style
 
@@ -32,7 +36,7 @@ jobs:
     - name: ci/checkout-repo
       uses: actions/checkout@24cb9080177205b6e8c946b17badbe402adc938f # v3.4.0
       with:
-        fetch-depth: 0
+        fetch-depth: 1
 
     - name: Setup Go
       uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 # v3.5.0
@@ -43,30 +47,42 @@ jobs:
     - name: ci/test
       run: make unittest
 
-  build:
+  scan:
     runs-on: ubuntu-22.04
-    needs:
-    - test
-    - lint
+    needs: [test, lint]
     steps:
     - name: ci/checkout-repo
       uses: actions/checkout@24cb9080177205b6e8c946b17badbe402adc938f # v3.4.0
       with:
-        fetch-depth: 0
-
-    - name: ci/generate-tag
-      run: |
-        if [ "${{ github.event_name }}" == "pull_request" ]
-        then
-          SHA=${{ github.event.pull_request.head.sha }}
-        else [ "${{ github.event_name }}"  == 'push' ]
-          SHA=${GITHUB_SHA}
-        fi
-        echo "TAG=${SHA:0:7}" >> $GITHUB_ENV
+        fetch-depth: 1
 
     - name: ci/build-docker
-      env:
-        REF_NAME: ${{ github.ref_name }}
-        DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-        DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-      uses: ./.github/actions/docker-build
+      uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671 # v4
+      with:
+        load: true
+        tags: "${{ env.IMAGE_NAME }}:test"
+
+    - name: ci/scan-docker-security
+      uses: aquasecurity/trivy-action@9ab158e8597f3b310480b9a69402b419bc03dbd5 # v0.8.0
+      with:
+        image-ref: "${{ env.IMAGE_NAME }}:test"
+        format: "table"
+        ignore-unfixed: true
+        vuln-type: "os,library"
+        severity: "CRITICAL"
+
+  push:
+    needs: [test, lint, scan]
+    runs-on: ubuntu-22.04
+    steps:
+    - name: ci/checkout-repo
+      uses: actions/checkout@24cb9080177205b6e8c946b17badbe402adc938f # v3.4.0
+      with:
+        fetch-depth: 1
+
+    - name: Build and push
+      uses: ./.github/actions/docker-push
+      with:
+        dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
+        dockerhub-password: ${{ secrets.DOCKERHUB_TOKEN }}
+        image-name: ${{ env.IMAGE_NAME }}
