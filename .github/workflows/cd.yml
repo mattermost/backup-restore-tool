@@ -10,7 +10,7 @@ permissions:
 
 env:
   IMAGE_NAME: mattermost/backup-restore-tool
-  LATEST_TAG: ${{ env.IMAGE_NAME }}:latest
+  LATEST_TAG: latest
 
 jobs:
   push:
