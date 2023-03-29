@@ -99,6 +99,7 @@ func pgRestoreCmd(connStr string, dumpPath string) *exec.Cmd {
 		"-d", connStr,
 		"-F", "c",
 		"--clean",
+		"--if-exists",
 		dumpPath,
 	)
 }

@@ -1,0 +1,50 @@
+name: 'Docker build and push'
+description: 'Builds and push Mattermost built images to dockerhub'
+inputs:
+  dockerhub-username: # id of input
+    description: 'Dockerhub username'
+    required: true
+  dockerhub-password:
+    description: 'Dockerhub password'
+    required: true
+  latest-tag:
+    description: 'The tag to use as "latest"'
+    default: 'latest'
+  image-name:
+    description: 'The name of the image to build'
+    required: true
+  main-branch:
+    description: 'The name of the main branch'
+    default: 'main'
+runs:
+  using: "composite"
+  steps:
+  - name: Login to Docker Hub
+    uses: docker/login-action@v2
+    with:
+      username: ${{ inputs.dockerhub-username }}
+      password: ${{ inputs.dockerhub-password }}
+
+  - name: cd/generate-ref-tag
+    shell: bash
+    run: |
+      if [ "${{ github.event_name }}" == "pull_request" ]
+      then
+        SHA=${{ github.event.pull_request.head.sha }}
+      else [ "${{ github.event_name }}"  == 'push' ]
+        SHA=${GITHUB_SHA}
+      fi
+      echo "REF_TAG=${SHA:0:7}" >> $GITHUB_ENV
+
+  - name: cd/push-docker-ref
+    uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671 # v4
+    with:
+      push: true
+      tags: ${{ inputs.image-name }}:${{ env.REF_TAG }}
+
+  - name: cd/push-docker-latest
+    uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671 # v4
+    if: ${{ github.ref_name == inputs.main-branch }}
+    with:
+      push: true
+      tags: ${{ inputs.image-name }}:${{ inputs.latest-tag }}
