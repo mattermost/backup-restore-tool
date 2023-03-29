@@ -26,7 +26,7 @@ runs:
       password: ${{ inputs.dockerhub-password }}
 
   # For pull requests use a custom tag: `pr-{pr number}`
-  - name: cd/push-docker-pr
+  - name: cd/push-docker-pr-tag
     uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671 # v4
     if: ${{ github.event_name == 'pull_request' }}
     with:
@@ -34,14 +34,14 @@ runs:
       tags: ${{ inputs.image-name }}:pr-${{ github.event.number }}
 
   # If pushing to the main branch, push the 'latest' tag and the version tag
-  - name: cd/push-docker-tag
+  - name: cd/push-docker-version-tag
     uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671 # v4
     if: ${{ inputs.is-release == 'yes' && github.event_name == 'push' && startsWith('v', github.ref_name) }}
     with:
       push: true
       tags: ${{ inputs.image-name }}:${{ github.ref_name }}
 
-  - name: cd/push-docker-latest
+  - name: cd/push-docker-latest-tag
     uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671 # v4
     if: ${{ inputs.is-release == 'yes' && github.event_name == 'push' }}
     with:
