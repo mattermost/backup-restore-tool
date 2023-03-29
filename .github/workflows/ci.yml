@@ -1,0 +1,88 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches:
+    - master
+
+permissions:
+  contents: read
+
+env:
+  IMAGE_NAME: mattermost/backup-restore-tool
+
+jobs:
+  lint:
+    runs-on: ubuntu-22.04
+    steps:
+    - name: ci/checkout-repo
+      uses: actions/checkout@24cb9080177205b6e8c946b17badbe402adc938f # v3.4.0
+      with:
+        fetch-depth: 1
+
+    - name: Setup Go
+      uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 # v3.5.0
+      with:
+        go-version-file: go.mod
+        cache: true
+
+    - name: ci/check-style
+      run: make check-style
+
+  test:
+    runs-on: ubuntu-22.04
+    steps:
+    - name: ci/checkout-repo
+      uses: actions/checkout@24cb9080177205b6e8c946b17badbe402adc938f # v3.4.0
+      with:
+        fetch-depth: 1
+
+    - name: Setup Go
+      uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 # v3.5.0
+      with:
+        cache: true
+        go-version-file: go.mod
+
+    - name: ci/test
+      run: make unittest
+
+  scan:
+    runs-on: ubuntu-22.04
+    needs: [test, lint]
+    steps:
+    - name: ci/checkout-repo
+      uses: actions/checkout@24cb9080177205b6e8c946b17badbe402adc938f # v3.4.0
+      with:
+        fetch-depth: 1
+
+    - name: ci/build-docker
+      uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671 # v4
+      with:
+        load: true
+        tags: "${{ env.IMAGE_NAME }}:test"
+
+    - name: ci/scan-docker-security
+      uses: aquasecurity/trivy-action@9ab158e8597f3b310480b9a69402b419bc03dbd5 # v0.8.0
+      with:
+        image-ref: "${{ env.IMAGE_NAME }}:test"
+        format: "table"
+        ignore-unfixed: true
+        vuln-type: "os,library"
+        severity: "CRITICAL"
+
+  push:
+    needs: [test, lint, scan]
+    runs-on: ubuntu-22.04
+    steps:
+    - name: ci/checkout-repo
+      uses: actions/checkout@24cb9080177205b6e8c946b17badbe402adc938f # v3.4.0
+      with:
+        fetch-depth: 1
+
+    - name: Build and push
+      uses: ./.github/actions/docker-push
+      with:
+        dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
+        dockerhub-password: ${{ secrets.DOCKERHUB_TOKEN }}
+        image-name: ${{ env.IMAGE_NAME }}

@@ -1,3 +1,4 @@
 /.idea
 /.vscode
 /build/_output
+coverage.out
