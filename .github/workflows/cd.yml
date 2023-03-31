@@ -28,4 +28,4 @@ jobs:
         dockerhub-password: ${{ secrets.DOCKERHUB_TOKEN }}
         image-name: ${{ env.IMAGE_NAME }}
         latest-tag: ${{ env.LATEST_TAG }}
-        main-branch: main
+        is-release: 'yes'
