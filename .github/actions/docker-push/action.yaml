@@ -27,9 +27,10 @@ runs:
 
   # For pull requests use a commit tag
   - name: Set outputs
-    id: vars
     shell: bash
-    run: echo "SHORT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+    run: |
+      SHA=${{ github.event.pull_request.head.sha }}
+      echo "SHORT_SHA=${SHA:0:7}" >> $GITHUB_ENV
 
   - name: cd/push-docker-pr-tag
     uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671 # v4
