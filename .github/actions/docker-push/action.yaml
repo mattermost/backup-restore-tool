@@ -13,9 +13,9 @@ inputs:
   image-name:
     description: 'The name of the image to build'
     required: true
-  main-branch:
-    description: 'The name of the main branch'
-    default: 'main'
+  is-release:
+    description: 'If the push is a release'
+    default: 'no'
 runs:
   using: "composite"
   steps:
@@ -25,26 +25,39 @@ runs:
       username: ${{ inputs.dockerhub-username }}
       password: ${{ inputs.dockerhub-password }}
 
-  - name: cd/generate-ref-tag
+  # For pull requests use a commit tag
+  - name: Set outputs
     shell: bash
     run: |
-      if [ "${{ github.event_name }}" == "pull_request" ]
-      then
-        SHA=${{ github.event.pull_request.head.sha }}
-      else [ "${{ github.event_name }}"  == 'push' ]
-        SHA=${GITHUB_SHA}
-      fi
-      echo "REF_TAG=${SHA:0:7}" >> $GITHUB_ENV
+      SHA=${{ github.event.pull_request.head.sha }}
+      echo "SHORT_SHA=${SHA:0:7}" >> $GITHUB_ENV
 
-  - name: cd/push-docker-ref
+  - name: cd/push-docker-pr-tag
     uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671 # v4
+    if: ${{ github.event_name == 'pull_request' }}
     with:
       push: true
-      tags: ${{ inputs.image-name }}:${{ env.REF_TAG }}
+      tags: ${{ inputs.image-name }}:${{ env.SHORT_SHA }}
 
-  - name: cd/push-docker-latest
+  # For pull requests use a custom tag `pr-{pr number}` too
+  - name: cd/push-docker-pr-tag
     uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671 # v4
-    if: ${{ github.ref_name == inputs.main-branch }}
+    if: ${{ github.event_name == 'pull_request' }}
+    with:
+      push: true
+      tags: ${{ inputs.image-name }}:pr-${{ github.event.number }}
+
+  # If pushing to the main branch, push the 'latest' tag and the version tag
+  - name: cd/push-docker-version-tag
+    uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671 # v4
+    if: ${{ inputs.is-release == 'yes' && github.event_name == 'push' && startsWith('v', github.ref_name) }}
+    with:
+      push: true
+      tags: ${{ inputs.image-name }}:${{ github.ref_name }}
+
+  - name: cd/push-docker-latest-tag
+    uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671 # v4
+    if: ${{ inputs.is-release == 'yes' && github.event_name == 'push' }}
     with:
       push: true
       tags: ${{ inputs.image-name }}:${{ inputs.latest-tag }}
