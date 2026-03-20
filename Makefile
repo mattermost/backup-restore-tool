@@ -31,16 +31,14 @@ build-image: ## Build the docker image of Backup Restore Tool
 	--no-cache
 
 .PHONY: check-style
-check-style: govet lint ## Runs govet and gofmt against all packages.
+check-style: govet golangci-lint ## Runs govet and gofmt against all packages.
 	@echo Checking for style guide compliance
 	$(GO) fmt ./...
 
-.PHONY: lint
-lint: ## Runs lint against all packages.
+golangci-lint: ## Run golangci-lint on codebase
 	@echo Running lint
-	env GO111MODULE=off $(GO) get -u golang.org/x/lint/golint
-	$(GOBIN)/golint -set_exit_status $(./... | grep -v /blapi/)
-	@echo lint success
+	$(GO) install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.50.1
+	$(GOBIN)/golangci-lint run ./...
 
 .PHONY: vet
 govet: ## Runs govet against all packages.
