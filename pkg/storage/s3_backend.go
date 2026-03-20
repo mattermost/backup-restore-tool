@@ -99,8 +99,7 @@ func (b *S3FileBackend) UploadFile(objectKey, sourcePath string) error {
 
 	path := filepath.Join(b.pathPrefix, objectKey)
 
-	var contentType string
-	contentType = "binary/octet-stream"
+	contentType := "binary/octet-stream"
 
 	options := s3PutOptions(true, contentType)
 	_, err = b.client.PutObject(context.Background(), b.bucket, path, file, -1, options)

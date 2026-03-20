@@ -52,6 +52,7 @@ func initConfig() {
 
 // Binds all flags as viper values
 func bindFlags(cmd *cobra.Command) {
+	//nolint:errcheck // BindPFlags errors are intentionally ignored temporarily here.
 	viper.BindPFlags(cmd.PersistentFlags())
 	for _, c := range cmd.Commands() {
 		bindFlags(c)
