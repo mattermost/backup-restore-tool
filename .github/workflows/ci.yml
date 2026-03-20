@@ -62,6 +62,15 @@ jobs:
         load: true
         tags: "${{ env.IMAGE_NAME }}:test"
 
+    - name: ci/scan-docker-security
+      uses: anchore/scan-action@7037fa011853d5a11690026fb85feee79f4c946c # v7.3.2
+      with:
+        image: "${{ env.IMAGE_NAME }}:test"
+        output-format: table
+        only-fixed: true
+        fail-build: false
+        severity-cutoff: critical
+
   push:
     needs: [test, lint, scan]
     runs-on: ubuntu-22.04
