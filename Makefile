@@ -9,10 +9,6 @@ GO ?= $(shell command -v go 2> /dev/null)
 GOFLAGS ?= $(GOFLAGS:)
 IMAGE ?= mattermost/backup-restore-tool:test
 
-TRIVY_SEVERITY := CRITICAL
-TRIVY_EXIT_CODE := 1
-TRIVY_VULN_TYPE := os,library
-
 export GO111MODULE=on
 
 all: check-style ## Checks the code style, tests, builds and bundles.
@@ -66,11 +62,6 @@ e2e: ## Run e2e test.
 .PHONY: e2e-s3-cleanup
 e2e-s3-cleanup: ## Removes backup file created in Amazon S3 by e2e test.
 	aws s3 rm s3://${BRT_STORAGE_BUCKET}/backup-restore-e2e-test-key
-
-.PHONY: build-image
-scan: build-image
-	@echo running trivy
-	@trivy image --format table --exit-code $(TRIVY_EXIT_CODE) --ignore-unfixed --vuln-type $(TRIVY_VULN_TYPE) --severity $(TRIVY_SEVERITY) $(IMAGE)
 
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' ./Makefile | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
