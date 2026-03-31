@@ -33,7 +33,7 @@ runs:
       echo "SHORT_SHA=${SHA:0:7}" >> $GITHUB_ENV
 
   - name: cd/push-docker-pr-tag
-    uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671 # v4
+    uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294 # v7.0.0
     if: ${{ github.event_name == 'pull_request' }}
     with:
       push: true
@@ -41,7 +41,7 @@ runs:
 
   # For pull requests use a custom tag `pr-{pr number}` too
   - name: cd/push-docker-pr-tag
-    uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671 # v4
+    uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294 # v7.0.0
     if: ${{ github.event_name == 'pull_request' }}
     with:
       push: true
@@ -49,14 +49,14 @@ runs:
 
   # If pushing to the main branch, push the 'latest' tag and the version tag
   - name: cd/push-docker-version-tag
-    uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671 # v4
+    uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294 # v7.0.0
     if: ${{ inputs.is-release == 'yes' && github.event_name == 'push' && startsWith(github.ref_name, 'v') }}
     with:
       push: true
       tags: ${{ inputs.image-name }}:${{ github.ref_name }}
 
   - name: cd/push-docker-latest-tag
-    uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671 # v4
+    uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294 # v7.0.0
     if: ${{ inputs.is-release == 'yes' && github.event_name == 'push' }}
     with:
       push: true
