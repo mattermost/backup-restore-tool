@@ -19,7 +19,7 @@ backup-restore-tool restore -d "[DB_CONNECTION_STRING]" --storage-object-key=my-
 
 For detailed description of available parameters, run:
 ```bash
-backup-retore-tool [COMMAND] -h
+backup-restore-tool [COMMAND] -h
 ```
 
 All options can be provided as environment variables. Make sure to replace `-` with `_`, capitalize option name and add `BRT` prefix:
